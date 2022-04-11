@@ -18,6 +18,8 @@ public class WheelDrive extends PIDSubsystem {
   private CANSparkMax speedMotor;
   private CANCoder rotationEncoder;
   private RelativeEncoder driveEncoder;
+  private final double GEAR_RATIO = .12285;//assumes mk4 standard module with an 8.14:1 gear ratio
+  private final double WHEEL_CIRCUMFERENCE = 4 * Math.PI;//in inches
   /** Creates a new WheelDrive. */
   public WheelDrive(int angleMotorID , int speedMotorID , int rotationEncoderID) {
     super(
@@ -27,7 +29,9 @@ public class WheelDrive extends PIDSubsystem {
     angleMotor = new CANSparkMax(angleMotorID , MotorType.kBrushless);
     speedMotor = new CANSparkMax(speedMotorID , MotorType.kBrushless);
     rotationEncoder = new CANCoder(rotationEncoderID);
-    driveEncoder = speedMotor.getEncoder();//must use setPositionConversionFactor​(double factor) and setVelocityConversionFactor​(double factor) to adapt to the gear ratio
+    driveEncoder = speedMotor.getEncoder();
+    driveEncoder.setPositionConversionFactor(GEAR_RATIO);
+    driveEncoder.setVelocityConversionFactor(GEAR_RATIO);
 
 
   }
@@ -50,11 +54,11 @@ public class WheelDrive extends PIDSubsystem {
   }
 
   public double getRate(){
-    return driveEncoder.getVelocity();
+    return driveEncoder.getVelocity() * WHEEL_CIRCUMFERENCE;
   }
 
   public double getDistance(){
-    return driveEncoder.getPosition();
+    return driveEncoder.getPosition() * WHEEL_CIRCUMFERENCE;
   }
 
   public void resetDistance(){
